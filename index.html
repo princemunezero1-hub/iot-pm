@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Live Voltage Monitor</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- MQTT.js CDN for WebSocket connection to HiveMQ -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body>
+  <div class="dashboard-container">
+    <header class="header">
+      <h2>ESP32 Voltage Monitoring Dashboard</h2>
+      <span class="status-badge" id="connectionStatus">Connecting to Broker...</span>
+    </header>
+
+    <div class="grid-container">
+      <!-- Gauge Card -->
+      <div class="card gauge-card">
+        <h3>Live Voltage (GPIO 34)</h3>
+        <div class="gauge-wrapper">
+          <svg class="gauge" viewBox="0 0 100 50">
+            <path class="gauge-bg" d="M 10 50 A 40 40 0 0 1 90 50" />
+            <path class="gauge-fill" id="gaugeFill" d="M 10 50 A 40 40 0 0 1 90 50" />
+          </svg>
+          <div class="gauge-readout">
+            <span id="voltageValue">0.00</span> <small>V</small>
+          </div>
+        </div>
+        <div class="adc-readout">Raw ADC: <strong id="adcValue">0</strong> / 4095</div>
+      </div>
+
+      <!-- Real-Time Graph Card -->
+      <div class="card graph-card">
+        <h3>Voltage History</h3>
+        <div class="chart-container">
+          <canvas id="voltageChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
