@@ -62,14 +62,14 @@ function updateGauge(voltage) {
 }
 
 // Push data into UI and Chart
-function pushVoltageData(voltage, adc) {
+function pushVoltageData(voltage, adc, timeLabel) {
   voltageValueEl.textContent = voltage.toFixed(2);
   adcValueEl.textContent = adc;
   updateGauge(voltage);
 
-  const currentTime = new Date().toLocaleTimeString();
+  const timestamp = timeLabel || new Date().toLocaleTimeString();
   
-  voltageChart.data.labels.push(currentTime);
+  voltageChart.data.labels.push(timestamp);
   voltageChart.data.datasets[0].data.push(voltage);
 
   if (voltageChart.data.labels.length > maxDataPoints) {
@@ -80,7 +80,20 @@ function pushVoltageData(voltage, adc) {
   voltageChart.update();
 }
 
-// --- MQTT Connection Setup ---
+// 1. Load historical database records when the page loads
+fetch('/api/readings')
+  .then(response => response.json())
+  .then(data => {
+    if (data.length > 0) {
+      data.forEach(item => {
+        const timeOnly = item.timestamp.split(' ')[1]; // Extract HH:MM:SS
+        pushVoltageData(item.voltage, item.adc, timeOnly);
+      });
+    }
+  })
+  .catch(err => console.error('Could not load history from database:', err));
+
+// 2. --- MQTT Connection Setup for Real-Time Streaming ---
 const brokerUrl = 'wss://broker.hivemq.com:8884/mqtt';
 const topicVoltage = 'esp32/potentiometer/voltage';
 const topicAdc = 'esp32/potentiometer/adc';
@@ -111,7 +124,6 @@ client.on('message', (topic, payload) => {
   
   if (topic === topicVoltage) {
     currentVoltage = parseFloat(message);
-    // Update immediately when voltage arrives
     pushVoltageData(currentVoltage, currentAdc);
   } else if (topic === topicAdc) {
     currentAdc = parseInt(message);
